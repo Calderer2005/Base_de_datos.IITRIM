@@ -1,0 +1,217 @@
+create table desarrolladores
+(
+    id number(2) primary key check (id > 0),
+    nombre varchar2(25) not null,
+    pais varchar2(50),
+    año_f number(4)
+);
+
+create table videojuego
+(
+    id number(2) primary key check (id > 0),
+    titulo varchar2(50) not null,
+    pegi number(3) check (pegi in (3,7,12,16,18)),
+    desarrollador number(2) check (desarrollador > 0),
+    
+    constraint fk_des foreign key (desarrollador) references desarrolladores(id)
+);
+
+create table generos
+(
+    id number(2) primary key check (id > 0),
+    nombre varchar2(25) not null
+);
+
+create table consola
+(
+    id number(2) primary key check (id > 0),
+    nombre varchar2(25) not null,
+    desarrollador number(2) check (desarrollador > 0),
+    fecha date,
+    generacion number(1) not null,
+    
+    constraint fk_consola_des foreign key (desarrollador) references desarrolladores(id)
+);
+
+create table lanzamiento
+(
+    juego number(2) check (juego > 0),
+    consola number(2) check (consola > 0),
+    fecha date,
+    
+    constraint pk_lan primary key (juego,consola),
+    constraint fk_lan_juego foreign key (juego) references videojuego(id),
+    constraint fk_lan_consola foreign key (consola) references consola(id)
+);
+
+create table jue_ge
+(
+    juego number(2) check (juego > 0),
+    genero number(2) check (genero > 0),
+    
+    constraint pk_jg primary key (juego,genero),
+    constraint fk_jg_juego foreign key (juego) references videojuego(id),
+    constraint fk_jg_genero foreign key (genero) references generos(id)
+);
+
+
+
+
+insert into desarrolladores values (1,'CD Projekt Red','Polonia',1994);
+insert into desarrolladores values (2,'Nintendo EPD','Japon',1889);
+insert into desarrolladores values (3,'Rockstar Games','Estados Unidos',1998);
+insert into desarrolladores values (4,'Mojang Studios','Suecia',2009);
+insert into desarrolladores values (5,'Sony Interactive','Japon',1993);
+insert into desarrolladores values (6,'Insomniac Games','Estados Unidos',1994);
+insert into desarrolladores values (7,'Microsoft','Estados Unidos',1975);
+
+insert into videojuego values (1,'Cyberpunk 2077',18,1);
+insert into videojuego values (2,'The Legend of Zelda',12,2);
+insert into videojuego values (3,'Red Dead Redemptio 2',18,3);
+insert into videojuego values (4,'Minecraft',7,4);
+insert into videojuego values (5,'Spyro',3,6);
+
+insert into consola values (1,'PlayStation',5,'3/12/1994',5);
+insert into consola values (2,'PlayStation 4',5,'15/11/2013',8);
+insert into consola values (3,'PlayStation 5',5,'12/11/2020',9);
+insert into consola values (4,'XBOX Series X',7,'10/11/2020',9);
+insert into consola values (5,'Nintendo Switch',2,'3/3/2017',8);
+
+insert into generos values (1,'RPG');
+insert into generos values (2,'Aventura');
+insert into generos values (3,'Accion');
+insert into generos values (4,'Sandbox');
+insert into generos values (5,'Shooter');
+
+insert into jue_ge values (1,1);
+insert into jue_ge values (1,3);
+insert into jue_ge values (1,5);
+insert into jue_ge values (2,2);
+insert into jue_ge values (2,3);
+insert into jue_ge values (3,3);
+insert into jue_ge values (3,4);
+insert into jue_ge values (3,5);
+insert into jue_ge values (4,4);
+insert into jue_ge values (5,2);
+insert into jue_ge values (5,3);
+
+insert into lanzamiento values (1,2,'10/12/2020');
+insert into lanzamiento values (1,3,'14/2/2022');
+insert into lanzamiento values (1,4,'14/2/2022');
+insert into lanzamiento values (2,5,'3/3/2017');
+insert into lanzamiento values (3,2,'26/10/2018');
+insert into lanzamiento values (4,2,'4/9/2014');
+insert into lanzamiento values (4,5,'12/5/2017');
+insert into lanzamiento values (5,1,'9/9/1998');
+insert into lanzamiento values (5,4,'14/2/2022');
+
+
+--1
+select titulo from videojuego v join desarrolladores d on v.desarrollador=d.id
+where pais='Japon';
+
+--2
+select titulo from videojuego
+where pegi > (select pegi from videojuego v join desarrolladores d on v.desarrollador=d.id
+                where pais='Suecia');
+                
+--3
+select distinct nombre from desarrolladores d join videojuego v on v.desarrollador=d.id join lanzamiento l on l.juego=v.id
+where fecha > '31/12/2015';
+
+--4
+select titulo from videojuego v, lanzamiento l
+where v.id = l.juego
+group by titulo
+having count(consola) > (select count(consola) from videojuego v, lanzamiento l
+                            where v.id = l.juego and titulo = 'Cyberpunk 2077');
+
+--5
+select c.nombre from consola c
+where fecha > all (select fecha from consola c, desarrolladores d
+                    where c.desarrollador = d.id and d.nombre = 'Nintendo EPD');
+
+--6
+select nombre from generos
+where id not in (select genero from jue_ge);
+
+--7
+select distinct titulo from videojuego v join lanzamiento l on v.id=l.juego join consola c on l.consola=c.id
+join desarrolladores d on c.desarrollador=d.id
+where d.nombre='Sony Interactive';
+
+--8
+select d.nombre from desarrolladores d
+where año_f < all (select año_f from desarrolladores where pais = 'Estados Unidos');
+
+--9
+select distinct titulo from videojuego
+where id not in (select juego from jue_ge j join generos g on j.genero=g.id where nombre='Shooter');
+
+--10
+select * from videojuego where titulo like 'The%';
+
+--11
+select * from generos where nombre like '________';
+
+--12
+select d.nombre, coalesce(c.nombre,'no tiene') from desarrolladores d left join consola c on c.desarrollador=d.id;
+
+--13
+select titulo from videojuego v join jue_ge g on v.id=g.juego
+group by titulo
+having count(genero)>1;
+
+--14
+select g.nombre, count(juego) from generos g join jue_ge j on g.id=j.genero
+group by g.nombre;
+
+--15
+select c.nombre, max(l.fecha) from consola c join lanzamiento l on c.id=l.juego
+group by c.nombre;
+
+--16
+alter table consola drop column generacion;
+
+--17
+delete from lanzamiento where consola=1;
+
+--18
+select desarrollador from videojuego j join desarrolladores d on j.desarrollador=d.id join 
+    (select pais as pa, avg(pegi) as avg from videojuego v join desarrolladores d on v.desarrollador=d.id
+        group by pais) on d.pais=pa
+where pegi > avg;
+
+--19
+select d.nombre from desarrolladores d join videojuego v on d.id=v.desarrollador join
+jue_ge j on v.id=j.juego
+group by d.nombre
+having count(genero)=(select count(id) from generos);
+
+--20
+select nombre from generos g join (
+    select genero as gen, count(distinct titulo) as cont from jue_ge j join videojuego v on j.juego=v.id join lanzamiento l on l.juego=v.id
+    join consola c on l.consola=c.id
+    where generacion=9
+    group by genero) on g.id=gen
+where cont >= ALL(
+    select count(distinct titulo) as cont from jue_ge j join videojuego v on j.juego=v.id join lanzamiento l on l.juego=v.id
+    join consola c on l.consola=c.id
+    where generacion=9
+    group by genero);
+
+--22
+select titulo from videojuego v join lanzamiento l on v.id=l.juego join
+consola c on l.consola=c.id
+group by titulo
+having count(generacion)=3;
+
+--23
+select titulo from videojuego v join lanzamiento l on v.id=l.juego join
+consola c on l.consola=c.id join desarrolladores d on d.id=c.desarrollador
+where d.nombre like '%ony%'
+group by titulo
+having count(consola)=(select count(c.id) from consola c join desarrolladores d on d.id=c.desarrollador
+                        where d.nombre like '%ony%');
+
+--25
