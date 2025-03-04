@@ -181,3 +181,15 @@ SELECT salas
 -- 53
 
 -- 54
+
+
+
+DECLARE 
+    titulo_pel peliculas.nombre%TYPE;
+BEGIN
+    SELECT nombre INTO titulo_pel FROM peliculas JOIN proyecciones ON p=peliculas;
+    WHERE sala='S2' AND hora='23.00';
+    
+    DBMS_OUTPUT.put_line('Nombre de la pelicula: '||titulo_pel);
+END;
+
