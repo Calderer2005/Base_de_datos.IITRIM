@@ -239,4 +239,73 @@ BEGIN
     
     DBMS_OUTPUT.put_line('Titulo de la película '||titulo);
 END;
-                        
+
+
+
+ACCEPT nom_peli PROMPT 'Introduce el titulo de la película';
+
+DECLARE
+    cadena pelicula.nombre%TYPE := '%'||'&nom_peli'||'%';
+    nacio pelicula.nacionalidad%TYPE;
+    datos pelicula%ROWTYPE;
+BEGIN
+    SELECT nacionalidad into nacio
+    FROM pelicula WHEN nombre LIKE cadena;
+    
+    IF (naico = 'España')
+    THEN 
+        DBMS_OUTPUT.put_line('La pelicula es nacional');
+    
+        SELECT * INTO datos
+        FROM pelicula WHERE nombre LIKE cadena;
+        
+        datos.nombre;
+    END IF;
+END;
+
+DECLARE
+    cont INT :=0;
+BEGIN
+    WHILE(cont <= 10) LOOP
+        DBMS_OUTPUT.put_line(cont);
+        cont := cont +1;
+    END LOOP;
+END;
+        
+DECLARE
+    cont INT :=10;
+BEGIN
+    WHILE(cont >= 0) LOOP
+        DBMS_OUTPUT.put_line(cont);
+        cont := cont -1;
+    END LOOP;
+END;     
+
+
+ACCEPT n_1 PROMPT 'Introduce un número';
+ACCEPT n_2 PROMPT 'Introduce otro número';
+DECLARE
+    n1 INT := &n_1;
+    n2 INT := &n_2;
+
+BEGIN
+    IF (n1 > n2) THEN
+        
+        cont := &n1;
+        
+        WHILE(cont >= n2) LOOP
+            DBMS_OUTPUT.put_line(cont);
+            cont := cont -1;
+        END LOOP;
+        
+    ELSE
+        cont := &n2;
+        
+        WHILE(cont >= n1) LOOP
+            DBMS_OUTPUT.put_line(cont);
+            cont := cont -1;
+        END LOOP;
+    END IF;
+END; 
+
+
